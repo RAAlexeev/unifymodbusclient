@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="466.0" prefWidth="540.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.mavenproject1.FXMLController">
+    <children>
+        <Button fx:id="button" layoutX="128.0" layoutY="38.0" onAction="#handleButtonAction" text="Click Me!" />
+        <Label fx:id="label" layoutX="126.0" layoutY="72.0" minHeight="16" minWidth="69" />
+      <TreeTableView fx:id="treeTableView" layoutX="14.0" layoutY="122.0" onContextMenuRequested="#treeTableViewContrextMenuRequest" prefHeight="315.0" prefWidth="499.0">
+        <columns>
+          <TreeTableColumn fx:id="treeTableColumnName" prefWidth="150.0" text="Имя" />
+            <TreeTableColumn fx:id="treeTableColumnAddr" prefWidth="75.0" text="Адрес" />
+            <TreeTableColumn fx:id="treeTableColumnAccess" prefWidth="52.0" text="Доступ" />
+            <TreeTableColumn fx:id="treeTableColumnType" prefWidth="60.0" text="Тип" />
+            <TreeTableColumn fx:id="treeTableColumnVolue" minWidth="0.0" prefWidth="67.0" text="Значение" />
+            <TreeTableColumn fx:id="treeTableColumnBar" prefWidth="82.0" />
+        </columns>
+         <contextMenu>
+            <ContextMenu fx:id="treeTableViewContextMenu">
+              <items>
+                  <MenuItem fx:id="menuItemGroup" mnemonicParsing="false" onAction="#menuItemGroupOnAction" text="Группа" />
+                <MenuItem fx:id="menuItemWord" mnemonicParsing="false" onAction="#menuItemWordOnAction" text="word" />
+              </items>
+            </ContextMenu>
+         </contextMenu>
+      </TreeTableView>
+    </children>
+</AnchorPane>
