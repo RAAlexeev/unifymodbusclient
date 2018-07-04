@@ -6,11 +6,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="466.0" prefWidth="540.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.mavenproject1.FXMLController">
+<AnchorPane id="AnchorPane" prefHeight="466.0" prefWidth="540.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.micronix.unifymodbusclient.FXMLController">
     <children>
-        <Button fx:id="button" layoutX="128.0" layoutY="38.0" onAction="#handleButtonAction" text="Click Me!" />
-        <Label fx:id="label" layoutX="126.0" layoutY="72.0" minHeight="16" minWidth="69" />
-      <TreeTableView fx:id="treeTableView" layoutX="14.0" layoutY="122.0" onContextMenuRequested="#treeTableViewContrextMenuRequest" prefHeight="315.0" prefWidth="499.0">
+      <TreeTableView fx:id="treeTableView" layoutX="14.0" layoutY="122.0"  prefHeight="315.0" prefWidth="499.0">
         <columns>
           <TreeTableColumn fx:id="treeTableColumnName" prefWidth="150.0" text="Имя" />
             <TreeTableColumn fx:id="treeTableColumnAddr" prefWidth="75.0" text="Адрес" />

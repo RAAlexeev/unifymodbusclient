@@ -5,8 +5,12 @@
  */
 package com.micronix.unifymodbusclient;
 
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import javafx.collections.ObservableList;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.TextField;
 
 /**
  *
@@ -16,23 +20,27 @@ public class MbItem {
     
     private String name;
     private String access;
-    private int addr;
+    private Integer addr;
     private String type; 
-    private int point;
+    private Integer point;
     private ProgressBar bar;
- 
-    public MbItem(String name, String access, int addr, String type)
+    private Map<Integer,String>  map;
+    public MbItem(String name, String access, Integer addr, String type)
     {
         this.name = name;
         this.access =access;
         this.addr = addr;
         this.type = type;
+        this.map =  new HashMap();
         bar = new ProgressBar(0.5);
+        
     }
-    public MbItem(String name)
+    public MbItem( String name )
     {
-        this.name = name; 
+        this.name = name;
     }
+
+
     
     public String getName(){
         return name;
@@ -47,27 +55,27 @@ public class MbItem {
     }
     
     public void setAccess(String access){
-        this.name = access;    
+        this.access = access;    
     }
-    public int getAddr(){
+    public Integer getAddr(){
         return addr;
     }
     
-    public void setAddr(Byte addr ){
+    public void setAddr(Integer addr ){
         this.addr = addr;    
     }
     public String getType(){
         return type;
     }
     
-    public void setType(String Type){
+    public void setType(String type){
         this.type = type;    
     }
-    public int getPoint(){
+    public Integer getPoint(){
         return point;
     }
     
-    public void setPoint(int point){
+    public void setPoint(Integer point){
         this.point = point;    
     }
         public ProgressBar getBar(){
@@ -77,6 +85,15 @@ public class MbItem {
     public void setBar(ProgressBar bar){
         this.bar = bar;    
     }
+    public void setMap(Integer point){
+        this.point = point;    
+    }
+        public Map getMap(){
+        return map;
+    }
     
+    public void setMap(HashMap map){
+        this.map = map;    
+    }
     
 }
