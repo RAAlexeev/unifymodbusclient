@@ -6,25 +6,76 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="466.0" prefWidth="540.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.micronix.unifymodbusclient.FXMLController">
+<AnchorPane id="AnchorPane" prefHeight="480.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.micronix.unifymodbusclient.FXMLController">
     <children>
-      <TreeTableView fx:id="treeTableView" layoutX="14.0" layoutY="122.0"  prefHeight="315.0" prefWidth="499.0">
-        <columns>
-          <TreeTableColumn fx:id="treeTableColumnName" prefWidth="150.0" text="Имя" />
-            <TreeTableColumn fx:id="treeTableColumnAddr" prefWidth="75.0" text="Адрес" />
-            <TreeTableColumn fx:id="treeTableColumnAccess" prefWidth="52.0" text="Доступ" />
-            <TreeTableColumn fx:id="treeTableColumnType" prefWidth="60.0" text="Тип" />
-            <TreeTableColumn fx:id="treeTableColumnVolue" minWidth="0.0" prefWidth="67.0" text="Значение" />
-            <TreeTableColumn fx:id="treeTableColumnBar" prefWidth="82.0" />
-        </columns>
-         <contextMenu>
-            <ContextMenu fx:id="treeTableViewContextMenu">
+      <MenuBar layoutX="5.0" layoutY="2.0" prefHeight="29.0" prefWidth="540.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <menus>
+          <Menu mnemonicParsing="false" text="Файл">
+            <items>
+              <MenuItem mnemonicParsing="false" onAction="#menuItemOpenOnAction" text="Открыть..." />
+                  <MenuItem mnemonicParsing="false" onAction="#menuItemSaveOnAction" text="Сохранить..." />
+            </items>
+          </Menu>
+            <Menu mnemonicParsing="false" text="Связь">
               <items>
-                  <MenuItem fx:id="menuItemGroup" mnemonicParsing="false" onAction="#menuItemGroupOnAction" text="Группа" />
-                <MenuItem fx:id="menuItemWord" mnemonicParsing="false" onAction="#menuItemWordOnAction" text="word" />
+                <MenuItem mnemonicParsing="false" onAction="#linkParamOnAction" text="Параметры..." />
+                  <CheckMenuItem fx:id="ChekMenuItemReguest" mnemonicParsing="false" onAction="#reguestOnAction" text="Опрашивать" />
+                  <MenuItem mnemonicParsing="false" onAction="#menuItemSetDefault" text="Установить значения" />
               </items>
-            </ContextMenu>
-         </contextMenu>
-      </TreeTableView>
+            </Menu>
+          <Menu mnemonicParsing="false" text="Помощь">
+            <items>
+              <MenuItem mnemonicParsing="false" onAction="#menuItemAbout" text="О программе" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <SplitPane dividerPositions="0.9655172413793104" prefHeight="160.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <SplitPane dividerPositions="0.3577586206896552" orientation="VERTICAL" prefHeight="466.0" prefWidth="540.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <items>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                           <children>
+                              <TextArea fx:id="textAreaLog" editable="false" layoutY="23.0" prefHeight="206.0" prefWidth="538.0" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <contextMenu>
+                                    <ContextMenu>
+                                      <items>
+                                        <MenuItem mnemonicParsing="false" onAction="#textAtiaLogMenuItemCliarOnAction" text="Очистить" />
+                                      </items>
+                                    </ContextMenu>
+                                 </contextMenu>
+                              </TextArea>
+                           </children>
+                        </AnchorPane>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="227.0" prefWidth="393.0">
+                           <children>
+                              <TreeTableView fx:id="treeTableView" onMouseClicked="#treeTableViewOnMouseClicked" onScrollFinished="#treeTableViewOnScrollFinisghed" onSwipeDown="#treeTableViewOnSwipeDown" onSwipeUp="#treeTableViewOnSwipeUp" prefHeight="335.0" prefWidth="540.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="-2.0" AnchorPane.topAnchor="0.0">
+                                <columns>
+                                  <TreeTableColumn fx:id="treeTableColumnName" prefWidth="180.0" text="Имя" />
+                                    <TreeTableColumn fx:id="treeTableColumnAddr" onEditStart="#treeTableColumnAddrOnEditStart" prefWidth="75.0" text="Адрес" />
+                                    <TreeTableColumn fx:id="treeTableColumnType" prefWidth="63.0" text="Тип" />
+                                    <TreeTableColumn fx:id="treeTableColumnVolue" minWidth="50.0" prefWidth="92.0" text="Значение" />
+                                    <TreeTableColumn fx:id="treeTableColumnDefaultValue" prefWidth="100.0" text="Уставка" />
+                                    <TreeTableColumn fx:id="treeTableColumnBar" editable="false" prefWidth="100.0" sortable="false" text="Диапазон" />
+                                </columns>
+                                 <contextMenu>
+                                    <ContextMenu fx:id="treeTableViewContextMenu">
+                                      <items>
+                                          <MenuItem fx:id="menuItemGroup" mnemonicParsing="false" onAction="#menuItemGroupOnAction" text="Устройство" />
+                                      </items>
+                                    </ContextMenu>
+                                 </contextMenu>
+                              </TreeTableView>
+                           </children>
+                        </AnchorPane>
+                    </items>
+                  </SplitPane>
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" />
+        </items>
+      </SplitPane>
     </children>
 </AnchorPane>

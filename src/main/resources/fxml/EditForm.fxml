@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.micronix.unifymodbusclient.EditFormController">
+   <children>
+      <TableView fx:id="tableView" cache="true" editable="true" layoutX="398.0" layoutY="14.0" prefHeight="359.0" prefWidth="169.0" tableMenuButtonVisible="true">
+        <columns>
+          <TableColumn fx:id="tableColumnKey" prefWidth="75.0" text="Ключ" />
+          <TableColumn fx:id="tableColumnVolue" prefWidth="75.0" text="Значение" />
+        </columns>
+         <contextMenu>
+            <ContextMenu>
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#tableViewOnAdd" text="Добавить" />
+              </items>
+            </ContextMenu>
+         </contextMenu>
+      </TableView>
+      <Label layoutX="123.0" layoutY="73.0" text="Уставка" />
+      <TextField fx:id="textFieldDefaultValue" layoutX="174.0" layoutY="69.0" prefHeight="25.0" prefWidth="70.0" />
+      <Label layoutX="69.0" layoutY="41.0" text="Функция modbus" />
+      <ChoiceBox fx:id="ChoiceBoxFunc" layoutX="174.0" layoutY="37.0" prefHeight="25.0" prefWidth="127.0" />
+      <Button fx:id="buttonWrite" layoutX="256.0" layoutY="69.0" mnemonicParsing="false" onAction="#buttonWriteOnAction" text="Передать" />
+      <Label layoutX="21.0" layoutY="103.0" text="Положение десят-й точки" />
+      <TextField fx:id="textFieldDot" layoutX="174.0" layoutY="99.0" prefHeight="25.0" prefWidth="70.0" />
+      <TextField fx:id="textFieldMin" layoutX="174.0" layoutY="130.0" prefHeight="25.0" prefWidth="70.0" />
+      <Label layoutX="30.0" layoutY="135.0" text="Минимальное значение" />
+      <Label layoutX="27.0" layoutY="164.0" text="Максимальное значение" />
+      <TextField fx:id="textFieldMax" layoutX="174.0" layoutY="160.0" prefHeight="25.0" prefWidth="70.0" />
+   </children>   
+    <stylesheets>
+        <URL value="@/styles/editform.css" />
+    </stylesheets>
+</AnchorPane>
