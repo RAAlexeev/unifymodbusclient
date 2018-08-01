@@ -4,23 +4,59 @@
 
     <groupId>com.micronix</groupId>
     <artifactId>unifyModbusClient</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>jar</packaging>
 
     <name>unifyModbusClient</name>
-
+   
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mainClass>com.micronix.unifymodbusclient.MainApp</mainClass>
+        <mainClass>com.micronix.unifymodbusclient.MainApp</mainClass>  
+        <bNumber>${buildNumber}</bNumber>
     </properties>
 
     <organization>
         <!-- Used as the 'Vendor' for JNLP generation -->
         <name>Your Organisation</name>
     </organization>
+    <scm>
+        <connection>scm:git:file://localhost/${project.build.directory}</connection>
+        <developerConnection>scm:git:file://localhost/${project.build.directory}</developerConnection>
+        <tag>HEAD</tag>
+        <url>scm:git:file://localhost/${project.build.directory}</url>
+    </scm>
 
     <build>
+
         <plugins>
+
+       
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.4</version>
+                <configuration>
+                    <format>{0,number}</format>
+                    <items>
+                        <item>buildNumber</item>
+                    </items>
+                    <revisionOnScmFailure>no.scm.config.in.pom</revisionOnScmFailure>            
+                    <doCheck>false</doCheck>
+                    <doUpdate>false</doUpdate>
+                    <addOutputDirectoryToResources>true</addOutputDirectoryToResources>
+                    <useLastCommittedRevision>true</useLastCommittedRevision>
+                    <shortRevisionLength>5</shortRevisionLength>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>useLastCommittedRevision</id>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -32,14 +68,38 @@
                         <goals>
                             <goal>unpack-dependencies</goal>
                         </goals>
-                        <configuration>
-                            <excludeScope>system</excludeScope>
-                            <excludeGroupIds>junit,org.mockito,org.hamcrest</excludeGroupIds>
-                            <outputDirectory>${project.build.directory}/classes</outputDirectory>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <excludeScope>system</excludeScope>
+                    <excludeGroupIds>junit,org.mockito,org.hamcrest</excludeGroupIds>
+                    <outputDirectory>${project.build.directory}/classes</outputDirectory>
+            
+                </configuration>
             </plugin>
+ <plugin>
+     <groupId>com.google.code.maven-replacer-plugin</groupId>
+     <artifactId>replacer</artifactId>
+     <version>1.5.2</version>
+     <executions>
+         <execution>
+             <phase>prepare-package</phase>
+             <goals>
+                 <goal>replace</goal>
+             </goals>
+         </execution>
+     </executions>
+     <configuration>
+         <file>src\main\java\com\micronix\unifymodbusclient\FXMLController.java</file>
+             <replacements>
+                 <replacement>
+                     <token>(buildNumber = ").*";</token>
+                     <value>$1${project.version}-r${buildNumber}";</value>
+                 </replacement>
+             </replacements>
+     </configuration>
+ </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
@@ -54,6 +114,12 @@
                         </goals>
                         <configuration>
                             <executable>${java.home}/../bin/javafxpackager</executable>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>buildNumber</key>
+                                    <value>${project.properties.bNumber}</value>
+                                </systemProperty>
+                            </systemProperties>
                             <arguments>
                                 <argument>-createjar</argument>
                                 <argument>-nocss2bin</argument>
@@ -76,9 +142,12 @@
                         <configuration>
                             <executable>${java.home}/bin/java</executable>
                             <commandlineArgs>${runfx.args}</commandlineArgs>
+ 
+                
                         </configuration>
                     </execution>
                 </executions>  
+                
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -92,17 +161,26 @@
                     </compilerArguments>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.16</version>
-                <configuration>
-                    <additionalClasspathElements>
-                        <additionalClasspathElement>${java.home}/lib/jfxrt.jar</additionalClasspathElement>
-                    </additionalClasspathElements>
-                </configuration>
-            </plugin>
+           
         </plugins>
+   
     </build>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.intelligt.modbus</groupId>
+            <artifactId>jlibmodbus</artifactId>
+            <version>1.2.9.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scream3r</groupId>
+            <artifactId>jssc</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+    </dependencies>
 </project>

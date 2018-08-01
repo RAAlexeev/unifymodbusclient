@@ -1,0 +1,104 @@
+{
+  "addr": -1,
+  "BaudRate": 19200,
+  "DataBits": 8,
+  "Parity": "EVEN",
+  "StopBits": 1,
+  "getChildren()": [
+    {
+      "addr": 1,
+      "access": "RW",
+      "name": "Устройство",
+      "point": 0,
+      "getChildren()": [
+        {
+          "addr": 2,
+          "access": "RW",
+          "name": "Версия ПО",
+          "point": 0,
+          "type": "int16",
+          "func": "x3",
+          "map": {},
+          "getChildren()": []
+        },
+        {
+          "addr": 3,
+          "access": "RW",
+          "name": "Код доступа",
+          "point": 0,
+          "type": "uint16",
+          "func": "x3",
+          "defaultValue": 2713,
+          "map": {},
+          "getChildren()": []
+        },
+        {
+          "addr": 4,
+          "access": "RW",
+          "name": "timestamp",
+          "point": 0,
+          "type": "uint32",
+          "func": "x3",
+          "map": {},
+          "getChildren()": []
+        },
+        {
+          "addr": 7,
+          "access": "RW",
+          "name": "месяц;год",
+          "point": 0,
+          "type": "bytes",
+          "func": "x3",
+          "map": {},
+          "getChildren()": []
+        },
+        {
+          "addr": 8,
+          "access": "RW",
+          "name": "час;мин",
+          "point": 0,
+          "type": "bytes",
+          "func": "x3",
+          "map": {},
+          "getChildren()": []
+        },
+        {
+          "addr": 9,
+          "access": "RW",
+          "name": "авария",
+          "point": 0,
+          "type": "uint16",
+          "func": "x3",
+          "map": {
+            "0": "Норма",
+            "1": "Раб. блок.",
+            "2": "#"
+          },
+          "getChildren()": []
+        },
+        {
+          "addr": 38,
+          "access": "RW",
+          "name": "уровень",
+          "point": 0,
+          "type": "uint16",
+          "func": "x3",
+          "map": {},
+          "min": 0.0,
+          "max": 3.0,
+          "getChildren()": []
+        },
+        {
+          "addr": 59,
+          "access": "RW",
+          "name": "Маска Ду насосов",
+          "point": 0,
+          "type": "bits",
+          "func": "x3",
+          "map": {},
+          "getChildren()": []
+        }
+      ]
+    }
+  ]
+}
