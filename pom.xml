@@ -50,6 +50,7 @@
                 <executions>
                     <execution>
                         <id>useLastCommittedRevision</id>
+                        <phase>validate</phase>
                         <goals>
                             <goal>create</goal>
                         </goals>
@@ -83,17 +84,17 @@
      <version>1.5.2</version>
      <executions>
          <execution>
-             <phase>prepare-package</phase>
+             <phase>validate</phase>
              <goals>
                  <goal>replace</goal>
              </goals>
          </execution>
      </executions>
      <configuration>
-         <file>src\main\java\com\micronix\unifymodbusclient\FXMLController.java</file>
+         <file>src\main\java\com\micronix\unifymodbusclient\Version.java</file>
              <replacements>
                  <replacement>
-                     <token>(buildNumber = ").*";</token>
+                     <token>(BUILD_NUMBER = ").*";</token>
                      <value>$1${project.version}-r${buildNumber}";</value>
                  </replacement>
              </replacements>

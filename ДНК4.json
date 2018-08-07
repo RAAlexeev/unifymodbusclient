@@ -95,6 +95,7 @@
           "point": 0,
           "type": "bits",
           "func": "x3",
+          "defaultValue": 0,
           "map": {},
           "getChildren()": []
         }

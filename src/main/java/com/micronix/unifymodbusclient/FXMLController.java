@@ -172,7 +172,7 @@ public class FXMLController implements   Initializable {
             treeTableView.setRowFactory(ttv -> {
                 ContextMenu contextMenu = new ContextMenu();
                 MenuItem menuItemDel = new MenuItem( "Удалить" );
-                MenuItem menuItemWord = new MenuItem( "Элемент" );
+                MenuItem menuItemWord = new MenuItem( "Добавить" );
                 MenuItem menuItemProperty = new MenuItem( "Параметры" );
                 MenuItem menuItemSetUnixTim = new MenuItem( "Передать UNIX Time" );
                 MenuItem menuItemSetDefaultVal = new MenuItem( "Передать уставку" );
@@ -187,14 +187,11 @@ public class FXMLController implements   Initializable {
                         } else {
                             // configure context menu with appropriate menu items,
                             // depending on value of item
-                            if(item.getMap() == null){
+                            if(item.getMap() == null)
                                 contextMenu.getItems().remove(menuItemProperty);
-                                contextMenu.getItems().remove(menuItemSetUnixTim);
-                                return;
-                            }
                             if(item.getRawDefaultValue() == null)
                                  contextMenu.getItems().remove(menuItemSetDefaultVal);
-                            if(! item.getType().equals(MbItem.Type.uint32))
+                            if( item.getType() == null || ! item.getType().equals(MbItem.Type.uint32))
                                  contextMenu.getItems().remove(menuItemSetUnixTim);
                             setContextMenu(contextMenu);
                         }
@@ -374,6 +371,10 @@ public class FXMLController implements   Initializable {
         treeTableColumnType.setCellValueFactory(new TreeItemPropertyValueFactory<>("type"));
         treeTableColumnType.setCellFactory(ChoiceBoxTreeTableCell.forTreeTableColumn(FXCollections.observableArrayList(FXCollections.observableArrayList(MbItem.Type.values()))));
         treeTableColumnType.setOnEditStart((CellEditEvent<MbItem, Object> event) -> {
+            MbItem value = event.getRowValue().getValue();
+            if (value == null || value.getType() == null ){ 
+                event.getTreeTableView().edit(0, null);
+            }else
             modbus.stopReguisition();
         });
         treeTableColumnType.setOnEditCancel((CellEditEvent<MbItem, Object> event) -> {
@@ -450,7 +451,11 @@ public class FXMLController implements   Initializable {
             }
         }));
         this.treeTableColumnVolue.setOnEditStart((CellEditEvent<MbItem, Object> event)  -> { 
-          modbus.stopReguisition();
+                MbItem value = event.getRowValue().getValue();
+            if (value == null || value.getType() == null ){ 
+                event.getTreeTableView().edit(0, null);
+            }else
+            modbus.stopReguisition();
         });
         this.treeTableColumnVolue.setOnEditCommit((CellEditEvent<MbItem, Object> event)  -> { 
            repairRequistState();
@@ -507,7 +512,19 @@ public class FXMLController implements   Initializable {
                 }
             
         }));
-       
+               this.treeTableColumnDefaultValue.setOnEditStart((CellEditEvent<MbItem, Object> event)  -> { 
+                MbItem value = event.getRowValue().getValue();
+            if (value == null || value.getType() == null ){ 
+                event.getTreeTableView().edit(0, null);
+            }else
+            modbus.stopReguisition();
+        });
+        this.treeTableColumnDefaultValue.setOnEditCommit((CellEditEvent<MbItem, Object> event)  -> { 
+           repairRequistState();
+        });
+        this.treeTableColumnDefaultValue.setOnEditCancel((CellEditEvent<MbItem, Object> event)  -> { 
+           repairRequistState();
+        });
         
         treeItemRoot = new TreeItem();
         treeTableView.setShowRoot(false);
@@ -803,13 +820,12 @@ public class FXMLController implements   Initializable {
     }
     
 
-    private final  String buildNumber = "1.0-r132";
     
     @FXML
     private void menuItemAbout( ActionEvent event ) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "unifyModbusClient");
             alert.setTitle("О программе");
-            alert.setHeaderText("unifyModbusClient " + buildNumber);
+            alert.setHeaderText("unifyModbusClient " + Version.BUILD_NUMBER );
             alert.setContentText("ООО НТФ \"Микроникс\"\n alekseev@mx-omsk.ru" );
             Optional<ButtonType> showAndWait = alert.showAndWait();
     

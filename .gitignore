@@ -1,2 +1,5 @@
-/target/
-/4.json
+target
+*.properties
+/*.properties
+/src/main/java/com/micronix/unifymodbusclient/Version.java
+/target/unifyModbusClient-1.0.jar

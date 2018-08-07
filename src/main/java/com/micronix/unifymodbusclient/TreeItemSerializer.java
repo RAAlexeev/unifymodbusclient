@@ -46,16 +46,16 @@ public class TreeItemSerializer implements JsonSerializer<TreeItem<MbItem>>{
               jsonObject.addProperty("name", mbItem.getName());
               jsonObject.addProperty("point", mbItem.getPoint());
               if ( mbItem.getType() != null )
-              jsonObject.addProperty("type", mbItem.getType().name());
+                jsonObject.addProperty("type", mbItem.getType().name());
               if ( mbItem.getFunc() != null )
-              jsonObject.addProperty("func", mbItem.getFunc().name());
-              if( mbItem.getBarOrDefaultValue() instanceof Integer  ) 
-                jsonObject.addProperty("defaultValue", (Integer)mbItem.getBarOrDefaultValue());
+                jsonObject.addProperty("func", mbItem.getFunc().name());
+              if( mbItem.getRawDefaultValue() != null  ) 
+                jsonObject.addProperty("defaultValue", mbItem.getRawDefaultValue());
               jsonObject.add("map", new Gson().toJsonTree(mbItem.getMap(), itemsMapType));
               if(mbItem.getMin() != null)
-                 jsonObject.addProperty("min", mbItem.getMin());
+                jsonObject.addProperty("min", mbItem.getMin());
               if(mbItem.getMax() != null)
-                 jsonObject.addProperty("max", mbItem.getMax());
+                jsonObject.addProperty("max", mbItem.getMax());
            }
            
            JsonArray child = new JsonArray();
@@ -64,7 +64,7 @@ public class TreeItemSerializer implements JsonSerializer<TreeItem<MbItem>>{
               JsonObject newJsonObject = new JsonObject();
               child.add(newJsonObject);
               exec((TreeItem) item,newJsonObject);     
-           });
+           }); 
          
     }
     
