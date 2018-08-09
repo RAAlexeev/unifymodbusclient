@@ -176,8 +176,8 @@ public class FXMLController implements   Initializable {
                 MenuItem menuItemProperty = new MenuItem( "Параметры" );
                 MenuItem menuItemSetUnixTim = new MenuItem( "Передать UNIX Time" );
                 MenuItem menuItemSetDefaultVal = new MenuItem( "Передать уставку" );
-
-                contextMenu.getItems().addAll(menuItemWord,menuItemProperty,menuItemSetUnixTim,menuItemDel,menuItemSetDefaultVal);
+                MenuItem menuItemChart = new MenuItem( "График..." );
+                contextMenu.getItems().addAll(menuItemWord,menuItemProperty,menuItemSetUnixTim,menuItemDel,menuItemSetDefaultVal,menuItemChart);
                 TreeTableRow<MbItem> row = new TreeTableRow<MbItem>() {
                     @Override
                     public void updateItem(MbItem item, boolean empty) {
@@ -187,17 +187,50 @@ public class FXMLController implements   Initializable {
                         } else {
                             // configure context menu with appropriate menu items,
                             // depending on value of item
-                            if(item.getMap() == null)
+                            if(item.getMap() == null){
                                 contextMenu.getItems().remove(menuItemProperty);
-                            if(item.getRawDefaultValue() == null)
+                                contextMenu.getItems().remove(menuItemChart);                                
+                            }
+                            if(item.getRawDefaultValue() == null){
                                  contextMenu.getItems().remove(menuItemSetDefaultVal);
-                            if( item.getType() == null || ! item.getType().equals(MbItem.Type.uint32))
+                            }
+                            if( item.getType() == null || ! item.getType().equals(MbItem.Type.uint32)){
                                  contextMenu.getItems().remove(menuItemSetUnixTim);
+                            }
+                            
                             setContextMenu(contextMenu);
                         }
                     }
                 };
-                
+                menuItemChart.setOnAction(evt -> {
+                    try {
+                        MbItem item = row.getItem();
+                        if( item == null )
+                            return;
+                             
+                        Stage stage = new Stage();
+                        Parent root;
+                        FXMLLoader  loader = new FXMLLoader(this.getClass().getResource("/fxml/Chart.fxml"));    
+                        
+                        root = (Parent) loader.load();
+                        
+                        ChartController cntrl = (ChartController)loader.getController();
+                        item.setAddData(cntrl::addData);
+                        stage.setScene(new Scene(root));
+                        stage.setTitle(item.getName());
+                        
+                        stage.initModality(Modality.NONE);
+                        stage.initOwner( this.treeTableView.getScene().getWindow());
+                        stage.setOnCloseRequest((WindowEvent event) -> {
+                            
+                           
+                        });
+                        stage.show();
+                    } catch (IOException ex) {
+                        Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, ex.getLocalizedMessage());
+                    }
+                }
+                );
                 menuItemDel.setOnAction(evt -> {  
                    TreeItem item = row.getTreeItem();
                    item.getChildren().clear();
@@ -730,12 +763,32 @@ public class FXMLController implements   Initializable {
         }
 
         }
-         }   
+         }  
+         
      });
     //    treeItem  = treeTableView.getTreeItem(range[0]);
+        addChartsToMbReguestData(treeTableView.getRoot());
         return mbReguestData;
     }
-    
+    private void addChartsToMbReguestData( TreeItem treeItem ){
+        MbItem mbItem = (MbItem)(treeItem.getValue());
+        
+        if (mbItem != null && mbItem.getMap()!= null && mbItem.addDataIsSet()){
+            int addr = mbItem.getServer() != null?mbItem.getServer():0;
+            int func = mbItem.getFunc().getCode();
+              Map<Integer, List<MbItem>> map = new HashMap(),
+              res =  mbReguestData.putIfAbsent( func,  map );
+              map = (res != null) ? res:map;
+              List list = new ArrayList(),
+              curList = map.putIfAbsent( addr, list );
+              curList = (curList == null) ? list : curList;
+              curList.add( mbItem );
+        }
+            treeItem.getChildren().forEach(  each->{
+                addChartsToMbReguestData((TreeItem) each);
+            });   
+        
+    }
     private int period = 1000;
     public int getPeriod(){
        return period;

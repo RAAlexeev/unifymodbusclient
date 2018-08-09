@@ -8,6 +8,7 @@ package com.micronix.unifymodbusclient;
 import static com.micronix.unifymodbusclient.MbItem.Type.float32;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -80,9 +81,11 @@ public class MbItem {
     private boolean hex = false;
     private  SimpleFloatProperty min = null, max = null;  
     private SimpleIntegerProperty  value = null;
+    private  Consumer<MbItem> addData; 
     private final SimpleStringProperty representationOfValue = new SimpleStringProperty();
     private TreeItem treeItem;
     private boolean isEdit = false;
+    
     public MbItem(MbItem item){
         this(item.name,item.server,item.access,item.addr,item.type,item.func,item.getRawDefaultValue(),item.getMin(),item.getMax());
         this.setMap((HashMap) item.getMap());
@@ -264,7 +267,9 @@ public class MbItem {
           this.value = new SimpleIntegerProperty(value);
       else 
           this.value.set(value);
-      
+    
+      if(this.addData != null) 
+          this.addData.accept(this);
       Platform.runLater(new Runnable(){
           @Override
           public void run() {          
@@ -274,8 +279,11 @@ public class MbItem {
         
      }
     
-    public Integer getValueRaw(){      
-        return this.value.getValue();
+    public Integer getValueRaw(){    
+        if(this.value != null) 
+            return this.value.getValue();
+        else
+            return null;
     }
     
     public SimpleStringProperty getValue(){
@@ -392,6 +400,12 @@ public class MbItem {
     }
     public boolean getIsEdit(){
      return this.isEdit;   
+    }
+     public boolean addDataIsSet( ){
+      return this.addData != null;
+    }
+    public void setAddData(Consumer<MbItem> addData  ){
+        this.addData = addData;
     }
 }
 
