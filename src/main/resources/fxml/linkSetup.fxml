@@ -6,7 +6,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.micronix.unifymodbusclient.LinkSetupController">
+<AnchorPane id="AnchorPane" prefHeight="325.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.micronix.unifymodbusclient.LinkSetupController">
    <children>
       <Group layoutX="131.0" layoutY="30.0" />
       <TextField fx:id="textFieldPeriod" layoutX="113.0" layoutY="103.0" prefHeight="25.0" prefWidth="65.0" />
@@ -23,7 +23,9 @@
       </Group>
       <Label layoutX="23.0" layoutY="111.0" />
       <ChoiceBox fx:id="choiceBoxType" layoutX="491.0" layoutY="45.0" prefHeight="25.0" prefWidth="96.0" />
-      <ChoiceBox fx:id="choiceBoxAddrCorect" layoutX="393.0" layoutY="103.0" prefHeight="25.0" prefWidth="61.0" />
-      <Label layoutX="294.0" layoutY="107.0" text="Корекция адреса" />
+      <ChoiceBox fx:id="choiceBoxAddrCorect" layoutX="494.0" layoutY="103.0" prefHeight="25.0" prefWidth="61.0" />
+      <Label layoutX="314.0" layoutY="107.0" text="Коррекция адресов регистров" />
+      <Button fx:id="btnSave" cancelButton="true" defaultButton="true" layoutX="170.0" layoutY="272.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="108.0" text="Сохранить" />
+      <Button fx:id="btnCancel" cancelButton="true" layoutX="362.0" layoutY="272.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="72.0" text="Отмена" />
    </children>
 </AnchorPane>

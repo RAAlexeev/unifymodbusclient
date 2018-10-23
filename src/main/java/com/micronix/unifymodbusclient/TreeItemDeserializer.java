@@ -67,6 +67,7 @@ public class TreeItemDeserializer implements JsonDeserializer<TreeItem<MbItem>> 
                                     item.getAsJsonObject().has("func")
                                             ?MbItem.Func.valueOf( item.getAsJsonObject().get("func").getAsString()) :null); 
              TreeItem newTreeItem =  mbItem.getTreeItem() ;
+             newTreeItem.setExpanded(true);
              treeItem.getChildren().add(newTreeItem);
              exec(item.getAsJsonObject(), newTreeItem);             
          });

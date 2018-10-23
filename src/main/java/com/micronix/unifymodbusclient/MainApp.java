@@ -25,11 +25,23 @@ import javafx.stage.Stage;
 
 public class MainApp extends Application {
     
-   
-     private  File fileProperties = new File("properties.properties");
+
+    private  File fileProperties = new File("properties.properties");
     @Override
     public void start(Stage stage) throws Exception {
 
+       if( !Character.isLetter(new File(".").getAbsoluteFile().getPath().charAt(0)) )
+       {
+            Alert alert = new Alert(AlertType.WARNING,"", new ButtonType("Ок",ButtonData.YES));
+            alert.setHeaderText("ВНИМАНИЕ! Программа частенко виснет при выпорлнении из сетевой папки.");
+            alert.setContentText("Скопируйте на локальную ФС, что бы не иметь проблем....");
+            alert.showAndWait();
+       }
+
+ 
+
+            
+        
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Scene.fxml"));
         Parent root = loader.load();
         FXMLController cntrl = loader.getController();

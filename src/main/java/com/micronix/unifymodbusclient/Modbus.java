@@ -13,6 +13,7 @@ import com.intelligt.modbus.jlibmodbus.master.ModbusMasterFactory;
 import com.intelligt.modbus.jlibmodbus.serial.SerialParameters;
 import com.intelligt.modbus.jlibmodbus.serial.SerialPortException;
 import com.intelligt.modbus.jlibmodbus.serial.SerialUtils;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -32,37 +33,50 @@ public class Modbus {
         @Override
         public void run() {
 
-            while (!Thread.currentThread().interrupted()) {
+            while (! thread.isInterrupted() ) {
 
                 try {
                     Thread.currentThread().sleep(controller.getPeriod());
-                } catch (InterruptedException ex) {
+                } catch ( InterruptedException ex ) {
                     break;
                 }
-                Map<Integer, Map<Integer, List<MbItem>>> reguest = controller.getVisibleMbItem(true);
-                synchronized (reguest) {
-                    reguest.forEach((func, addrs) -> {
+                Map<Integer, Map<Integer, List<MbItem>>> reguests = controller.getVisibleMbItem( true );
+               // synchronized (reguest) {
+                   // try {
+                       // reguest.wait();
+                  //  } catch (InterruptedException ex) {
+                     //  break;
+                   // }
+
+                    reguests.forEach((func, addrs) -> {
                         switch (func) {
                             case 3:
-                                addrs.forEach((Integer addr, List<MbItem> reg) -> {
-                                    reg.sort((MbItem a, MbItem b) -> {
-                                        return a.getAddr().compareTo(b.getAddr());
-                                    });
-                                    reg.forEach((r)->{
-                                        r.setValue(null);
-                                    });
-                                    int addrFirst = reg.get(0).getAddr() + MbItem.addrCorrect;
-                                    int addrLast = reg.get(reg.size()-1).getAddr();
+                                addrs.forEach( (Integer addr, List<MbItem> reg) -> {
+                            Object[] toArray = reg.toArray();
+                                    Arrays.sort(toArray, (Object a, Object b)->{
+                                        ((MbItem)a).setValue(null);
+                                        ((MbItem)b).setValue(null);
+                                        return ((MbItem)a).getAddr().compareTo( ((MbItem)b).getAddr() );
+                                                });
+                                   // reg.sort( (MbItem a, MbItem b) -> {
+                                   //     return a.getAddr().compareTo( b.getAddr() );
+                                  //  });
+                                   // reg.forEach((r)->{
+                                 //       r.setValue(null);
+                                 //   });
+                                    int addrFirst = ((MbItem)toArray[0]).getAddr() +/*reg.get(0).getAddr()*/ + MbItem.addrCorrect;
+                                    int addrLast =((MbItem)toArray[toArray.length-1]).getAddr(); //reg.get( reg.size()-1 ).getAddr();
                                    
                                     for(; addrFirst < addrLast; addrFirst+= 125)
                                     try {
                                         if(addrLast - addrFirst > 125) 
                                             addrLast += 125 - addrLast - addrFirst;
                                         else
-                                            addrLast = reg.get(reg.size()-1).getAddr();
-                                        int[] readHoldingRegisters = master.readHoldingRegisters(addr, addrFirst,
-                                                 addrLast - addrFirst + 2); //групповой запрос
-                                        if (readHoldingRegisters.length >= addrLast - addrFirst + 2)     
+                                            addrLast = ((MbItem)toArray[toArray.length-1]).getAddr();
+                                        
+                                        int[] readHoldingRegisters = master.readHoldingRegisters( addr, addrFirst,
+                                                 addrLast - addrFirst + 1 ); //групповой запрос
+                                       // if (readHoldingRegisters.length >= addrLast - addrFirst + 1)     
                                             for (int i = 0; i < reg.size(); ++i) {
                                                 int addrI = reg.get(i).getAddr()+ MbItem.addrCorrect;
                                                 
@@ -86,7 +100,7 @@ public class Modbus {
                                       
                                     } catch (ModbusProtocolException | ModbusNumberException | ModbusIOException ex) {
 
-                                        Logger.getLogger(Modbus.class.getName()).log(Level.INFO, ex.getMessage());
+                                        Logger.getLogger(Modbus.class.getName()).log(Level.SEVERE, ex.getMessage());
                                     }// catch (InterruptedException ex) {
                             //  return;
                            // }
@@ -100,7 +114,7 @@ public class Modbus {
                                 break;
                         }
                     });
-                }
+               // }
             }
         }
     };
@@ -151,6 +165,7 @@ public class Modbus {
             if ( this.thread.isAlive()) return true;
             this.thread = new Thread(this.runnable, "thread-Modbus");
             this.thread.setDaemon(true);
+            this.thread.setPriority( Thread.NORM_PRIORITY - 1 );
             this.thread.start();
         } catch (ModbusIOException ex) {
             Logger.getLogger(Modbus.class.getName()).log(Level.SEVERE, ex.getMessage());
@@ -161,11 +176,13 @@ public class Modbus {
     
     public void stopReguisition()  {
         try {
+           while(this.thread.isAlive() && ! this.thread.isInterrupted()) 
             this.thread.interrupt();
+            
             if (this.master != null)
                 this.master.disconnect();
         } catch (ModbusIOException ex) {
-            Logger.getLogger(Modbus.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Modbus.class.getName()).log(Level.SEVERE, ex.getLocalizedMessage());
         }
     }
     
@@ -180,7 +197,7 @@ public class Modbus {
             master.connect();
             return master;
         } catch (ModbusIOException | SerialPortException ex) {
-            Logger.getLogger(Modbus.class.getName()).log(Level.INFO, ex.getMessage());
+             Logger.getLogger(Modbus.class.getName()).log(Level.SEVERE, ex.getMessage());
         }
 
         return null;

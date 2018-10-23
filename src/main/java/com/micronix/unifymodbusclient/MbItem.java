@@ -18,6 +18,7 @@ import javafx.event.Event;
 import javafx.scene.control.TreeItem.TreeModificationEvent;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TreeItem;
+import javafx.stage.Stage;
 
 /**
  *
@@ -404,8 +405,14 @@ public class MbItem {
      public boolean addDataIsSet( ){
       return this.addData != null;
     }
-    public void setAddData(Consumer<MbItem> addData  ){
+    private Stage stage;
+    public void setAddData(Consumer<MbItem> addData, Stage stage ){
         this.addData = addData;
+        this.stage = stage;
     }
+    public Stage getStage(){
+        return stage;
+    }
+    
 }
 

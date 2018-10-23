@@ -21,7 +21,7 @@
               <items>
                 <MenuItem mnemonicParsing="false" onAction="#linkParamOnAction" text="Параметры..." />
                   <CheckMenuItem fx:id="ChekMenuItemReguest" mnemonicParsing="false" onAction="#reguestOnAction" text="Опрашивать" />
-                  <MenuItem mnemonicParsing="false" onAction="#menuItemSetDefault" text="Установить значения" />
+                  <MenuItem mnemonicParsing="false" onAction="#menuItemSetDefault" text="Передать уставки" />
               </items>
             </Menu>
           <Menu mnemonicParsing="false" text="Помощь">
@@ -39,7 +39,7 @@
                     <items>
                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                            <children>
-                              <TextArea fx:id="textAreaLog" editable="false" layoutY="23.0" prefHeight="206.0" prefWidth="538.0" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                              <TextArea fx:id="textAreaLog" editable="false" layoutY="23.0" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                  <contextMenu>
                                     <ContextMenu>
                                       <items>

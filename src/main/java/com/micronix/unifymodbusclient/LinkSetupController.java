@@ -10,8 +10,11 @@ import com.intelligt.modbus.jlibmodbus.serial.SerialPort;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.ResourceBundle;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
 import jssc.SerialPortList;
@@ -39,6 +42,11 @@ public class LinkSetupController implements Initializable {
     private ChoiceBox<String> choiceBoxType;
     @FXML
     private ChoiceBox<Integer> choiceBoxAddrCorect;
+    private boolean saved = false;
+    @FXML
+    private Button btnSave;
+    @FXML
+    private Button btnCancel;
 
     /**
      * Initializes the controller class.
@@ -59,30 +67,37 @@ public class LinkSetupController implements Initializable {
                  }
         });
        this.choiceBoxAddrCorect.getItems().addAll(0, -1);
+
         // TODO
+    }    
+    public void setBtnSaveAction(EventHandler<ActionEvent> action){
+        this.btnSave.setOnAction( action );
+    }
+    public void setBtnCancelAction(EventHandler<ActionEvent> action){
+        this.btnCancel.setOnAction( action );
     }    
     public String getType(){
         return this.choiceBoxType.getValue();
     }
     
     public void setType(String type){
-          this.choiceBoxType.setValue(type);
+          this.choiceBoxType.setValue( type );
     }
     
     private SerialParameters serialParameters;
     
     public void setData(SerialParameters p, String type, int period){
        serialParameters = p;
-       this.choiceBoxPortName.setValue(p.getDevice());
-       this.choiceBoxBaudrate.setValue(SerialPort.BaudRate.getBaudRate(p.getBaudRate()));  
-       this.choiceBoxPortBits.setValue(p.getDataBits());
+       this.choiceBoxPortName.setValue( p.getDevice() );
+       this.choiceBoxBaudrate.setValue( SerialPort.BaudRate.getBaudRate(p.getBaudRate()) );  
+       this.choiceBoxPortBits.setValue( p.getDataBits() );
        this.choiceBoxPortParity.getSelectionModel().select(p.getParity().getValue());
-       this.choiceBoxPortStoBit.setValue(p.getStopBits());
-       this.choiceBoxType.setValue(type);
-       this.textFieldPeriod.setText(Integer.toString(period));
-       this.choiceBoxAddrCorect.setValue(MbItem.addrCorrect);
+       this.choiceBoxPortStoBit.setValue( p.getStopBits() );
+       this.choiceBoxType.setValue( type );
+       this.textFieldPeriod.setText( Integer.toString( period ) );
+       this.choiceBoxAddrCorect.setValue( MbItem.addrCorrect );
     }
-    
+     
     public SerialParameters getSerialParameters(){
        serialParameters.setBaudRate(this.choiceBoxBaudrate.getValue());
        serialParameters.setDataBits(this.choiceBoxPortBits.getValue());
@@ -93,10 +108,13 @@ public class LinkSetupController implements Initializable {
         
     } 
     public Integer getPeriod(){
-        
         return Integer.parseInt(this.textFieldPeriod.getText());
     }
     public Integer getAddrCorect(){
         return this.choiceBoxAddrCorect.getValue();
     }
+    public boolean btnSaveIsClicked(){
+        return this.saved;
+    }
+
 }
