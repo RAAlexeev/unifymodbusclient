@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +39,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -56,6 +54,7 @@ import javafx.scene.control.cell.ChoiceBoxTreeTableCell;
 import javafx.scene.control.cell.TextFieldTreeTableCell;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.SwipeEvent;
@@ -128,7 +127,11 @@ public class FXMLController implements   Initializable {
         if  ( properties.getProperty( "Period" ) != null )
            this.period = Integer.parseInt( properties.getProperty( "Period" ) );
         
-            
+        System.out.printf("Параметры связи:%s;%d;%d;%s;%d\n",this.serialParameters.getDevice(),
+                this.serialParameters.getBaudRate(),
+                this.serialParameters.getDataBits(),
+                this.serialParameters.getParity().name(),
+                this.serialParameters.getStopBits());
     }
     
     public  boolean getIsEdited(){
@@ -144,6 +147,7 @@ public class FXMLController implements   Initializable {
     private URL url;
     @Override
     public void initialize(URL url, ResourceBundle rb) { 
+        textAreaLog.appendText("\n");
         Logger.getLogger(FXMLController.class.getName()).setLevel( Level.OFF );
             this.url = url;
             PrintStream defaultOut = System.out;
@@ -152,11 +156,16 @@ public class FXMLController implements   Initializable {
                  @Override
                 public void write( byte b[], int off, int len ) throws IOException {
                     final String s = new String(b, off, len);
-                     textAreaLog.appendText(s); 
-                    if( textAreaLog.getText().length() > 10000 )
-                        textAreaLog.deleteText(0, textAreaLog.getText().length()-5001 );
-
-                    defaultOut.append(s);
+                     Platform.runLater(new Runnable(){
+       
+                        @Override
+                        public void run() {
+                            if( textAreaLog.getText().length() > 5000 )
+                                   textAreaLog.deleteText(0, 2000 );
+                               textAreaLog.appendText(s);
+                               }
+                        });
+                   defaultOut.append(s);
                  }     
 
                 @Override
@@ -167,18 +176,37 @@ public class FXMLController implements   Initializable {
                 
             };
             System.setOut(new PrintStream(out, true));
-          //  System.setErr(new PrintStream(out, true));
+            System.setErr(new PrintStream(out, true));
             
+             this.treeTableView.setOnKeyPressed(new EventHandler<KeyEvent>(){
+            @Override
+            public void handle(KeyEvent e) {
+              
+
+               switch (e.getCode()){
+                  case DELETE:
+                     if( treeTableView.getRoot().getChildren().isEmpty()) return;
+                      treeTableView.getSelectionModel().getSelectedItems()
+                          .forEach((item)->{
+                                TreeItemDelRestore.saveAndDelete((TreeItem) item);
+                  });
+                  case Z:if(e.isControlDown())TreeItemDelRestore.restore();
+                      break;
+                  default://System.out.println(e.getCode());
+               }
+            }
+        });
        
             treeTableView.setRowFactory(ttv -> {
                 ContextMenu contextMenu = new ContextMenu();
                 MenuItem menuItemDel = new MenuItem( "Удалить" );
-                MenuItem menuItemWord = new MenuItem( "Добавить" );
+                MenuItem menuItemAddSub = new MenuItem( "Добавить дочерний" );
+                MenuItem menuItemAdd = new MenuItem( "Добавить" );
                 MenuItem menuItemProperty = new MenuItem( "Параметры" );
                 MenuItem menuItemSetUnixTime = new MenuItem( "Передать UNIX Time" );
                 MenuItem menuItemSetDefaultVal = new MenuItem( "Передать уставку" );
                 MenuItem menuItemChart = new MenuItem( "Тренд..." );
-                contextMenu.getItems().addAll(menuItemWord, menuItemProperty, menuItemSetUnixTime, menuItemDel, menuItemSetDefaultVal, menuItemChart );
+                contextMenu.getItems().addAll(menuItemAdd,menuItemAddSub, menuItemProperty, menuItemSetUnixTime, menuItemDel, menuItemSetDefaultVal, menuItemChart );
                 TreeTableRow<MbItem> row = new TreeTableRow<MbItem>() {
                     @Override
                     public void updateItem(MbItem item, boolean empty) {
@@ -188,6 +216,9 @@ public class FXMLController implements   Initializable {
                         } else {
                             // configure context menu with appropriate menu items,
                             // depending on value of item
+                            if(item.getTreeItem().getParent() == null){
+                             contextMenu.getItems().remove(menuItemAdd);
+                            }
                             if( item.getMap() == null ){
                                 contextMenu.getItems().remove(menuItemProperty);
                                 contextMenu.getItems().remove(menuItemChart);                                
@@ -248,37 +279,32 @@ public class FXMLController implements   Initializable {
                     if(mbItem != null && mbItem.getStage() != null )
                         mbItem.getStage().close();
                    item.getChildren().clear();
-                   item.getParent().getChildren().
-                           remove(item);
+                   item.getParent().getChildren().remove(item);
                    isEdited = true;
                 });
-                menuItemWord.setOnAction(evt -> {
+                menuItemAddSub.setOnAction(evt -> {
                     TreeItem rootItem = row.getTreeItem(),
                              treeItem = new MbItem( "Новый элемент", ((MbItem)(rootItem.getValue())).getServer() , MbItem.Access.RW, 0, MbItem.Type.uint16, MbItem.Func.x3  ).getTreeItem();
                     rootItem.getChildren().add( treeItem );
                     isEdited = true;
                 });
+                menuItemAdd.setOnAction(evt -> {
+                    TreeItem rootItem = row.getTreeItem();
+                    if( rootItem.getParent() != null ) evt.consume(); 
+                    TreeItem treeItem = new MbItem( "Новый элемент", ((MbItem)(rootItem.getValue())).getServer() , MbItem.Access.RW, 0, MbItem.Type.uint16, MbItem.Func.x3  ).getTreeItem();
+                    if(rootItem.getParent() != null)
+                    rootItem.getParent().getChildren().add( treeItem );
+                    isEdited = true;
+                });
                 menuItemSetDefaultVal.setOnAction(evnt->{                   
                     try {
-                        MbItem code = MbItem.code.get(row.getItem().getServer());
-                        if(code != null )
-                            this.modbus.getModbusMaster().writeSingleRegister( code.getServer(), code.getAddr(), code.getRawDefaultValue() );  
+                      //  MbItem code = MbItem.code.get(row.getItem().getServer());
+                       // if(code != null )
+                        //    this.modbus.getModbusMaster().writeSingleRegister( code.getServer(), code.getAddr(), code.getRawDefaultValue() ); 
+                        
                         int val = row.getItem().getValueRaw();
-                        switch(row.getItem().getType()){
-                      
-                            case uint32:
-                            case int32:
-                            case float32:
-            
-                              int[] reg = {val>>16,val & 0x0000FFFF};
-                              modbus.getModbusMaster().writeMultipleRegisters(row.getItem().getServer(), row.getItem().getAddr(), reg);
-                              break;
-                            default: 
-                                modbus.getModbusMaster().writeSingleRegister(row.getItem().getServer(), row.getItem().getAddr(), val);
-                        }
-
-                    
-                        repairRequistState();
+                        this.modbus.writeReg(row.getItem(), val);
+                        
                         isEdited = true;
                     } catch ( ModbusProtocolException | ModbusNumberException | ModbusIOException ex ) {
                         
@@ -375,7 +401,7 @@ public class FXMLController implements   Initializable {
                 }
             } );
             
-            treeTableColumnAddr.setCellValueFactory(new TreeItemPropertyValueFactory<>("addr"));
+            treeTableColumnAddr.setCellValueFactory(new TreeItemPropertyValueFactory<>("address"));
             
             treeTableColumnAddr.setCellFactory(TextFieldTreeTableCell.forTreeTableColumn(new StringConverter<Object>() {
                 @Override
@@ -386,15 +412,15 @@ public class FXMLController implements   Initializable {
                 @Override
                 public Number fromString(String string) {
                     try{
-                        int parseUnsignedInt = Integer.parseUnsignedInt(string);
-                        if (parseUnsignedInt >=  -MbItem.addrCorrect )
-                            return parseUnsignedInt;
+                        int parseUnsigned = Integer.parseUnsignedInt(string);
+                        if (parseUnsigned >=  -MbItem.addrCorrect )
+                            return parseUnsigned;
                         else{
-                            System.out.println( "INFO:Некоректный адрес < " + -MbItem.addrCorrect );
-                            throw new NumberFormatException("Некоректный адрес < " + -MbItem.addrCorrect);
+                            System.out.println( "INFO:Некоректный адрес < " +   parseUnsigned  );
+                            throw new NumberFormatException("Некоректный адрес < " + parseUnsigned);
                         }
                     }catch(NumberFormatException ex){
-                        System.out.println("Некоректный адрес: " + -MbItem.addrCorrect);
+                        System.out.println("Некоректный адрес: " + string);
                         ex.setStackTrace( new StackTraceElement[0]);
                          throw ex;  
                          }     
@@ -430,7 +456,7 @@ public class FXMLController implements   Initializable {
         treeTableColumnType.setOnEditStart((CellEditEvent<MbItem, Object> event) -> {
             MbItem value = event.getRowValue().getValue();
             if (value == null || value.getType() == null ){ 
-                event.getTreeTableView().edit(0, null);
+                event.getTreeTableView().edit( 0, null );
             }else
             modbus.stopReguisition();
         });
@@ -438,7 +464,16 @@ public class FXMLController implements   Initializable {
           repairRequistState();
         });        
         treeTableColumnType.setOnEditCommit((CellEditEvent<MbItem, Object> event) -> {
-            event.getRowValue().getValue().setType(MbItem.Type.valueOf(event.getNewValue().toString()));
+            MbItem item = event.getRowValue().getValue();
+                   item.setType(MbItem.Type.valueOf(event.getNewValue().toString()));
+            switch( item.getType() ){
+                case _1bit:
+                case _8bit:
+                    item.setFunc(MbItem.Func.x1);
+                    break;
+                default:  
+                    item.setFunc(MbItem.Func.x3);
+            }
             repairRequistState();
         });
 
@@ -464,54 +499,43 @@ public class FXMLController implements   Initializable {
                 try {
                      switch (mbItem.getType()) {
                         case bytes:
-                            String[] split = string.split("\\D", 2);
+                            String[] split = string.split("\\d+", 2);
                             if (split.length > 1) 
                                 val = Integer.parseInt(split[0])<<8 |  Integer.parseInt(split[1]); 
                             else 
                                 val = Integer.parseInt(split[0]);
-                            modbus.getModbusMaster().writeSingleRegister(mbItem.getServer(), mbItem.getAddr(), val);
-                            return val;
+                            modbus.writeReg(mbItem, val);
+                            break;
                         case int32:
                         case uint32:
                             val = Integer.parseInt(string);
-                            registers[0] = (int) (val << 16);
-                            registers[1] = (int) (val & 0x00FF);
-    
-                                modbus.getModbusMaster().writeMultipleRegisters(mbItem.getServer(), mbItem.getAddr(), registers);
-                            return val;
+                           
+                                modbus.writeReg(mbItem, val);
+                            break;
                         case float32:
                             val = ((int) (Double.doubleToRawLongBits(Float.parseFloat(string))));
-                            registers[0] = val >> 16;
-                            registers[1] = val & 0x0000FFFF;
-      
-                                modbus.getModbusMaster().writeMultipleRegisters(mbItem.getServer(), mbItem.getAddr(), registers);
-            
-
+                            modbus.writeReg(mbItem, val);
                             break;
                         case int16:
                         case uint16:
                             val = Integer.parseInt(string);
-                            modbus.getModbusMaster().writeSingleRegister(mbItem.getServer(), mbItem.getAddr(), val);
-                            return val;
-                           
+                            modbus.writeReg(mbItem, val);
+                             break;
+                        case _1bit:  
+                        case _8bit:    
                         case bits:
-                            val = Integer.parseInt(string, 2);
-                            if (string.length() > 16) {
-                                registers[0] = (int) (val << 16);
-                                modbus.getModbusMaster().writeMultipleRegisters(mbItem.getServer(), mbItem.getAddr(), registers);
-                            } else {
-                               modbus.getModbusMaster().writeSingleRegister(mbItem.getServer(), mbItem.getAddr(), val);
-                            }
-                            return val;
+                            val = Integer.parseInt(string,2);
+                           modbus.writeReg(mbItem, val);
+                            break;
                     }
 
 
                 } catch ( NumberFormatException ex ) {
-                    System.out.println( "Недопустимое значение: "+ string );
+                    System.out.println( "!!!Недопустимое значение: "+ string );
                     ex.setStackTrace(new StackTraceElement[0]);
                     throw ex;
                 } catch (ModbusProtocolException | ModbusNumberException | ModbusIOException ex) {
-                    System.out.println("INFO:Записать значение для: "+ mbItem.getName()+ " не удалось!");
+                    System.out.println("!!!Записать значение для: "+ mbItem.getName()+ " не удалось!");
                     Logger.getLogger(FXMLController.class.getName()).log(Level.INFO, "Записать не удалось! " + ex.getMessage());
                 }
                 return mbItem.getRepresentationOfValue();
@@ -557,14 +581,19 @@ public class FXMLController implements   Initializable {
                      try{
                          Integer val;
                          switch(mbItem.getType()){
+                             case _1bit:
+                             case _8bit:    
                              case bits: 
                                  val = Integer.parseUnsignedInt(string, 2);
                                  break;
                              case float32: 
                                 val  = Float.floatToRawIntBits(Float.parseFloat(string));
                                 break;
+                             case bytes:
+                               String[] s  =  string.split("\\d\\d;\\d\\d");
+                                val = Integer.parseInt(s[0])<<8 & Integer.parseInt(s[1]);
                              default: 
-                               val =  Integer.parseInt(string);
+                               val = Integer.parseInt(string);
                          }
                          if(string.isEmpty()) 
                              mbItem.setDefaultValue(null);
@@ -598,8 +627,8 @@ public class FXMLController implements   Initializable {
         treeTableView.setShowRoot(false);
         treeTableView.setRoot(treeItemRoot);
         treeTableView.setEditable(true);
-            
-            // TODO
+        
+       // TODO
 
     }
     public  Gson gson = new GsonBuilder().setPrettyPrinting()
@@ -648,6 +677,11 @@ public class FXMLController implements   Initializable {
                             if(cntrl.getPeriod() != null)
                                 properties.setProperty("Period", cntrl.getPeriod().toString());
                             MbItem.addrCorrect = cntrl.getAddrCorect();
+                                    System.out.printf("Параметры связи:%s;%d;%d;%s;%d\n",this.serialParameters.getDevice(),
+                                                                                        this.serialParameters.getBaudRate(),
+                                                                                        this.serialParameters.getDataBits(),
+                                                                                        this.serialParameters.getParity().name(),
+                                                                                        this.serialParameters.getStopBits());
                             this.treeTableView.refresh();
                         } catch (ModbusIOException | SerialPortException ex) {
                             Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, ex.getLocalizedMessage());
@@ -774,13 +808,13 @@ public class FXMLController implements   Initializable {
 
     private final Map<Integer, Map<Integer, List<MbItem>>> mbReguestData = new ConcurrentHashMap();   
     
-    public synchronized  Map<Integer, Map<Integer,List<MbItem>>> getVisibleMbItem( Boolean update ){
+    public  Map<Integer, Map<Integer,List<MbItem>>> getVisibleMbItem( Boolean update ){
  
       if (!update) return mbReguestData;
 
-     Platform.runLater(new Runnable(){
-           @Override
-         public void run() {
+  //   Platform.runLater(new Runnable(){
+ //          @Override
+  //       public void run() {
 //     synchronized (mbReguestData){            
      int[] range = getVisibleRange(treeTableView);
      int i = range[1];
@@ -789,14 +823,15 @@ public class FXMLController implements   Initializable {
          val.clear(); 
             });
      while( (item != null) && (i > range[0]) ){
-        if (item.getValue() == null )
+        //  TreeItem item = treeTableView.getTreeItem(i);
+        if ( item.getValue() == null )
         {
             --i;
             continue; 
         }
         
-        int addr = ((MbItem)(item.getValue())).getServer() != null?((MbItem)(item.getValue())).getServer():0;
-        int func = ((MbItem)(item.getValue())).getFunc().getCode();
+        int addr = (((MbItem)(item.getValue())).getServer() != null)?((MbItem)(item.getValue())).getServer():0;
+        int func = (((MbItem)(item.getValue())).getFunc() != null)?((MbItem)(item.getValue())).getFunc().getCode():0;
          /*System.out.printf(((MbItem)(treeTableView.getTreeItem(i).getValue())).getName()+'\n');
           do{
              addr = item.getParent().equals(this.treeTableView.getRoot()) ? ((MbItem)(item.getValue())).getAddr():addr;
@@ -805,21 +840,25 @@ public class FXMLController implements   Initializable {
           }while((addr == 0 || func == 0 )&& item != null &&item.getValue()!= null );
           */
          
-          Map<Integer,List<MbItem>> map = new ConcurrentHashMap(),
-                  res =  mbReguestData.putIfAbsent(func,  map);
-          map = (res != null) ? res:map;
-          item = treeTableView.getTreeItem(i--);
-          List list = new ArrayList(),
-            curList = map.putIfAbsent(addr, list);
-          curList = (curList == null) ? list : curList;
-          if(((MbItem)(item.getValue())).getMap() != null)
-            curList.add( item.getValue() );
+          Map<Integer,List<MbItem>> map = new ConcurrentHashMap();
+          map = mbReguestData.putIfAbsent(func,  map);
+          map = map != null ? map : mbReguestData.get(func);
+          
+          List curList =  new ArrayList();
+            curList =  map.putIfAbsent(addr,  curList);
+          curList = curList != null ? curList : map.get(addr);
+          
+          if(item.getValue()!= null && ((MbItem)(item.getValue())).getMap() != null)
+            curList.add( item.getValue() ); 
+          
+          item = treeTableView.getTreeItem(--i);
         }
       //  mbReguestData.notify();
-        }
+
+        
   //      }  
          
-     });
+
     //    treeItem  = treeTableView.getTreeItem(range[0]);
     
         addChartsToMbReguestData(treeTableView.getRoot());
@@ -830,10 +869,8 @@ public class FXMLController implements   Initializable {
         
         if (mbItem != null && mbItem.getMap()!= null && mbItem.addDataIsSet()){
             int addr = mbItem.getServer() != null?mbItem.getServer():0;
-            int func = mbItem.getFunc().getCode();
-              Map<Integer, List<MbItem>> map = new HashMap(),
-              res =  mbReguestData.putIfAbsent( func,  map );
-              map = (res != null) ? res:map;
+            int func = mbItem.getFunc() != null?mbItem.getFunc().getCode():0;
+              Map<Integer, List<MbItem>> map  =  mbReguestData.putIfAbsent( func,  new HashMap() );
               List list = new ArrayList(),
               curList = map.putIfAbsent( addr, list );
               curList = (curList == null) ? list : curList;
@@ -884,17 +921,14 @@ public class FXMLController implements   Initializable {
         this.setTitle = setTitle;
     }
    private void setDefaultValues(TreeItem item) {
-        MbItem value = (MbItem) item.getValue();
-        if( value != null ) 
-            if(value.getRawDefaultValue() != null){
+        MbItem mbItem = (MbItem) item.getValue();
+        if( mbItem != null ) 
+            if(mbItem.getRawDefaultValue() != null){
                 try {
-                    MbItem code = MbItem.code.get(value.getServer());
-                        if(code != null && !code.equals(item) )
-                            this.modbus.getModbusMaster().writeSingleRegister( code.getServer(), code.getAddr(), code.getRawDefaultValue() );    
-                        this.modbus.getModbusMaster().writeSingleRegister( value.getServer(), value.getAddr(), value.getRawDefaultValue() );
+                    this.modbus.writeReg(mbItem,mbItem.getRawDefaultValue());
                     } catch ( ModbusProtocolException | ModbusNumberException | ModbusIOException ex ) {
-                    System.out.println("INFO:Не удалось установить уставку для: "+ value.getName() +"!" );
-                    Logger.getLogger(FXMLController.class.getName()).log( Level.SEVERE, "Не удалось установить уставку:" + value.getName() + ex.getMessage() );
+                
+                    Logger.getLogger(FXMLController.class.getName()).log( Level.SEVERE, "Не удалось установить уставку:" + mbItem.getName() + ex.getMessage() );
                 }
             }
         item.getChildren().forEach( each->{
@@ -919,7 +953,7 @@ public class FXMLController implements   Initializable {
             Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
             stage.getIcons().add( new Image( getClass().getResourceAsStream( "/logo.png" )) );
             alert.setHeaderText("unifyModbusClient " + Version.BUILD_NUMBER );
-            alert.setContentText("ООО НТФ \"Микроникс\"\n alekseev@mx-omsk.ru\n (программа пока поддерживает только груповой опрос, 'дырявые устройства' доступны толко на запись...  )" );
+            alert.setContentText("ООО НТФ \"Микроникс\"\n alekseev@mx-omsk.ru" );
             alert.showAndWait();
     
     }

@@ -27,10 +27,17 @@ import javafx.stage.Stage;
 public class MbItem {
     public static int addrCorrect = 0;   
     public final static Map<Integer,MbItem> code = new HashMap();
+
+
        
       enum Func {
-        x3("0x03 Read Holding Registers",3 );
-        //x6("0x06 Preset Single Register",6),
+        x1( "0x01 Read Coil Status", 1 ),
+        x2( "0x02 Read Discrete Inputs", 2 ),
+        x3( "0x03 Read Holding Registers", 3 ),
+        x4( "0x04 Read Input Registers", 4 ),
+        x5( "0x05 Force Single Coil", 5 ),
+        x6( "0x06 Preset Single Register", 6 );
+      
        // x10("0x10(16) Preset Multiple Registers",16);
         private String description;
         private int code;
@@ -39,10 +46,10 @@ public class MbItem {
             this.code = code;
         }
         public String getDescription() {
-            return description;
+            return this.description;
         }
         public int getCode(){
-            return code;
+            return this.code;
         }
         Func getByCode(int code){
             for( Func mbFunc : Func.values()){
@@ -60,6 +67,8 @@ public class MbItem {
         uint32,
         float32,
         bits,
+        _1bit,
+        _8bit,
         bytes
         
         
@@ -180,11 +189,18 @@ public class MbItem {
     public void setServer(int addr){
         server = addr;
     }
+    public Integer getAddress()
+    {
+        if (addr == null){
+            return server;
+        }
+        return addr;   
+    }
     public Integer getAddr(){
         if (addr == null){
             return server;
         }
-        return addr;
+        return addr +MbItem.addrCorrect;
     }
     
     public void setAddr( int addr ){
@@ -279,7 +295,9 @@ public class MbItem {
       });
         
      }
-    
+    void setValue(boolean[] bits) {
+      this.setValue( Integer.parseUnsignedInt( bits.toString(),2));
+    }
     public Integer getValueRaw(){    
         if(this.value != null) 
             return this.value.getValue();
@@ -297,7 +315,7 @@ public class MbItem {
             case bytes:
                 if(this.hex)
                      this.representationOfValue.set(Integer.toHexString(val >> 8)+";" + Integer.toHexString(val & 0x000000FF));
-                this.representationOfValue.set(Integer.toHexString(val >> 8)+";" + Integer.toHexString(val & 0x000000FF));
+                this.representationOfValue.set(Integer.toHexString(val >> 8)+";" + Integer.toString(val & 0x000000FF));
                 return this.representationOfValue;
                 
             case uint32:

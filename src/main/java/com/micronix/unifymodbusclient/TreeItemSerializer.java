@@ -41,7 +41,7 @@ public class TreeItemSerializer implements JsonSerializer<TreeItem<MbItem>>{
            
            if ( treeItem.getValue() != null ){
               MbItem  mbItem = (MbItem) treeItem.getValue();
-              jsonObject.addProperty("addr", mbItem.getAddr());
+              jsonObject.addProperty("addr", mbItem.getAddress());
               jsonObject.addProperty("access", mbItem.getAccess().name());
               jsonObject.addProperty("name", mbItem.getName());
               jsonObject.addProperty("point", mbItem.getPoint());

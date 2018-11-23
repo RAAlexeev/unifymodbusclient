@@ -29,7 +29,7 @@ public class MainApp extends Application {
     private  File fileProperties = new File("properties.properties");
     @Override
     public void start(Stage stage) throws Exception {
-
+/*
        if( !Character.isLetter(new File(".").getAbsoluteFile().getPath().charAt(0)) )
        {
             Alert alert = new Alert(AlertType.WARNING,"", new ButtonType("Ок",ButtonData.YES));
@@ -38,10 +38,8 @@ public class MainApp extends Application {
             alert.showAndWait();
        }
 
- 
-
-            
-        
+ */
+  
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Scene.fxml"));
         Parent root = loader.load();
         FXMLController cntrl = loader.getController();
@@ -65,7 +63,7 @@ public class MainApp extends Application {
                Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, "Не удалось сохранить павраметры" + ex.getMessage());   
            }
            if(cntrl.getIsEdited()){
-            Alert alert = new Alert(AlertType.WARNING,"Изменения будут утеряны...", new ButtonType("Да",ButtonData.YES), new ButtonType("Нет", ButtonData.NO),new ButtonType("Отмена", ButtonData.CANCEL_CLOSE));
+            Alert alert = new Alert(AlertType.WARNING, "Изменения будут утеряны...", new ButtonType("Да",ButtonData.YES), new ButtonType("Нет", ButtonData.NO),new ButtonType("Отмена", ButtonData.CANCEL_CLOSE));
             alert.setHeaderText("ВНИМАНИЕ! Сохранить изменения?");
             alert.setContentText("Если НЕТ изменения будут утеряны...");
             Optional<ButtonType> showAndWait = alert.showAndWait();
@@ -78,10 +76,11 @@ public class MainApp extends Application {
                         fileChooser.setInitialDirectory(new File(".").getAbsoluteFile());
                         f = fileChooser.showSaveDialog(scene.getWindow());
                     }  
-                    if(f == null || !f.canWrite() ){
+                     FileWriter writer = new FileWriter(f);
+                    if(f == null || !f.canWrite()||writer==null ){
                      evnt.consume();
                     }
-                    FileWriter writer = new FileWriter(f);
+                   
                     writer.write( cntrl.gson.toJson(cntrl.getRoot()) );//writer.write(treeItemdata2GsonObject.gson.toJson(jSonObject));
                     writer.flush();
                 } catch (IOException ex) {

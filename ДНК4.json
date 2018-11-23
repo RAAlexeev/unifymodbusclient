@@ -93,7 +93,7 @@
           "access": "RW",
           "name": "Маска Ду насосов",
           "point": 0,
-          "type": "bits",
+          "type": "_1bit",
           "func": "x3",
           "defaultValue": 0,
           "map": {},

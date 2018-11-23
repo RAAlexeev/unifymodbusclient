@@ -9,6 +9,7 @@ import com.intelligt.modbus.jlibmodbus.exception.ModbusIOException;
 import com.intelligt.modbus.jlibmodbus.exception.ModbusNumberException;
 import com.intelligt.modbus.jlibmodbus.exception.ModbusProtocolException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -52,10 +53,10 @@ public class EditFormController implements Initializable {
     @FXML
     private void buttonWriteOnAction(ActionEvent event) {
            try {
-                if(MbItem.code.get(mbItem.getServer()) != null){
-                    modbus.getModbusMaster().writeSingleRegister( mbItem.getServer(), MbItem.code.get(mbItem.getServer()).getAddr(), MbItem.code.get(mbItem.getServer()).getRawDefaultValue() );                   
-                } 
-                modbus.getModbusMaster().writeSingleRegister( mbItem.getServer(), mbItem.getAddr(), mbItem.getRawDefaultValue() );          
+                     //modbus.getModbusMaster().writeSingleRegister( mbItem.getServer(), MbItem.code.get(mbItem.getServer()).getAddr() , MbItem.code.get(mbItem.getServer()).getRawDefaultValue() );  
+                    modbus.writeReg(mbItem, mbItem.getRawDefaultValue());
+                 
+          
             } catch (ModbusProtocolException | ModbusNumberException | ModbusIOException ex) {
                 Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE,"Не удалось передать!" + ex.getMessage());
             }
@@ -115,6 +116,14 @@ public class EditFormController implements Initializable {
             this.textFieldMin.setText( mbItem.getMin().toString());
         
         this.textFieldDot.setText( mbItem.getPoint()!= null?mbItem.getPoint().toString():"" );
+        ArrayList fd = new ArrayList(); 
+        int i = 0;
+        for (MbItem.Func f :  MbItem.Func.values())
+            if (  (mbItem.getType() != MbItem.Type.bits) 
+                    &&(f != MbItem.Func.x5 && f != MbItem.Func.x6)
+               )fd.add( f.getDescription());
+                           
+        this.ChoiceBoxFunc.getItems().setAll( fd );
      }
         
     /**
@@ -187,11 +196,7 @@ public class EditFormController implements Initializable {
             }
 
         });
-        String[] fd= new String[MbItem.Func.values().length];
-        int i = 0;
-        for (MbItem.Func f :  MbItem.Func.values())
-            fd[i++] = f.getDescription();
-        this.ChoiceBoxFunc.getItems().setAll(Arrays.asList( fd ));
+
         this.ChoiceBoxFunc.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue)->{
             this.mbItem.setFunc(MbItem.Func.values()[newValue.intValue()]);
         });

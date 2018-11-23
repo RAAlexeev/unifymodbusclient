@@ -13,7 +13,6 @@ import com.intelligt.modbus.jlibmodbus.master.ModbusMasterFactory;
 import com.intelligt.modbus.jlibmodbus.serial.SerialParameters;
 import com.intelligt.modbus.jlibmodbus.serial.SerialPortException;
 import com.intelligt.modbus.jlibmodbus.serial.SerialUtils;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -28,101 +27,150 @@ public class Modbus {
     private ModbusMaster master;
     private Thread thread;
     private FXMLController controller;
-
-    final Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-
-            while (! thread.isInterrupted() ) {
-
-                try {
-                    Thread.currentThread().sleep(controller.getPeriod());
-                } catch ( InterruptedException ex ) {
-                    break;
-                }
-                Map<Integer, Map<Integer, List<MbItem>>> reguests = controller.getVisibleMbItem( true );
-               // synchronized (reguest) {
-                   // try {
-                       // reguest.wait();
-                  //  } catch (InterruptedException ex) {
-                     //  break;
-                   // }
-
-                    reguests.forEach((func, addrs) -> {
+    private int[] getReg(int func, int addr,int reg, int cnt) throws ModbusProtocolException, ModbusNumberException, ModbusIOException{
+    
+        switch(func){
+            
+            case 3: return master.readHoldingRegisters(addr, reg, cnt);
+                
+            case 4: return master.readInputRegisters(addr, reg, cnt);
+        }
+        return null;
+    }   
+    
+    private boolean[] getBits(int func,int addr,int reg, int cnt) throws ModbusProtocolException, ModbusNumberException, ModbusIOException{
+        switch(func){
+            case 1: return master.readCoils(addr, reg, cnt);
+            case 2: return master.readDiscreteInputs(addr, reg, cnt);
+        }
+        return null;
+    }
+    
+    final Runnable runnable;
+     Modbus(FXMLController controller){  
+        this.runnable = new Runnable() {
+            private boolean linkUp = false;
+            @Override
+            public void run() {
+       
+                while (! thread.isInterrupted() ) {
+                    
+                    try {
+                        thread.sleep(controller.getPeriod());
+                    } catch ( InterruptedException ex ) {
+                        break;
+                    }
+                    Map<Integer, Map<Integer, List<MbItem>>> reguests = controller.getVisibleMbItem( true );
+                    // synchronized (reguest) {
+                    // try {
+                    // reguest.wait();
+                    //  } catch (InterruptedException ex) {
+                    //  break;
+                    // }
+                     
+                    reguests.forEach((Integer func, Map<Integer, List<MbItem>> addrs) -> {
+                     
                         switch (func) {
-                            case 3:
-                                addrs.forEach( (Integer addr, List<MbItem> reg) -> {
-                            Object[] toArray = reg.toArray();
-                                    Arrays.sort(toArray, (Object a, Object b)->{
-                                        ((MbItem)a).setValue(null);
-                                        ((MbItem)b).setValue(null);
-                                        return ((MbItem)a).getAddr().compareTo( ((MbItem)b).getAddr() );
-                                                });
-                                   // reg.sort( (MbItem a, MbItem b) -> {
-                                   //     return a.getAddr().compareTo( b.getAddr() );
-                                  //  });
-                                   // reg.forEach((r)->{
-                                 //       r.setValue(null);
-                                 //   });
-                                    int addrFirst = ((MbItem)toArray[0]).getAddr() +/*reg.get(0).getAddr()*/ + MbItem.addrCorrect;
-                                    int addrLast =((MbItem)toArray[toArray.length-1]).getAddr(); //reg.get( reg.size()-1 ).getAddr();
+                            case 1:
+                            case 2:
+                                addrs.forEach( (Integer addr, List<MbItem> mbItems) -> {
+                                    try{        
+                                        for (MbItem mbItem :  mbItems ) {
+                                            boolean[] bits = null;                 
+                                            if(mbItem.getAddr() >= 0)
+                                                switch (mbItem.getType()) {
+                                                    case _1bit:
+                                                         bits = getBits(func, addr, mbItem.getAddr(), 1 );
+                                                        break; 
+                                                     case _8bit:
+                                                          bits = getBits(func, addr, mbItem.getAddr(), 8 );
+                                                         break; 
+                                                     case  int32:
+                                                     case uint32:
+                                                          bits = getBits(func, addr, mbItem.getAddr(), 32 );
+                                                    default:
+                                                         bits = getBits(func, addr, mbItem.getAddr(), 16 );   
+                                            }
+                                        mbItem.setValue(bits);
+                                        if( !this.linkUp )System.out.println("Связь установлена!");                                     }
+                                        this.linkUp = false;     
+                                        } catch (ModbusProtocolException | ModbusNumberException | ModbusIOException ex) {
+                                        this.linkUp = false;System.out.print("!!!Ошибка связи!");
+                                        Logger.getLogger(Modbus.class.getName()).log(Level.SEVERE, ex.getMessage());
+                                  }
+                                });
+                                break;   
+                            case 3: 
+                               /* addrs.forEach( (Integer addr, List<MbItem> mbItems) -> {
                                    
-                                    for(; addrFirst < addrLast; addrFirst+= 125)
-                                    try {
-                                        if(addrLast - addrFirst > 125) 
-                                            addrLast += 125 - addrLast - addrFirst;
-                                        else
-                                            addrLast = ((MbItem)toArray[toArray.length-1]).getAddr();
+                                    Object[] toArray = mbItem.toArray();
+                                    Arrays.sort(toArray, (Object a, Object b)->{
+                                    ((MbItem)a).setValue(null);
+                                    ((MbItem)b).setValue(null);
+                                    return ((MbItem)a).getAddr().compareTo( ((MbItem)b).getAddr() );
+                                    });
+                                    // mbItem.sort( (MbItem a, MbItem b) -> {
+                                    //     return a.getAddr().compareTo( b.getAddr() );
+                                    //  });*/
+                                    //   mbItem.forEach((r)->{
+                                    //        r.setValue(null);
+                                    //   });
+                                    // int addrFirst = ((MbItem)toArray[0]).getAddr() + MbItem.addrCorrect;
+                                    // int addrLast =((MbItem)toArray[toArray.length-1]).getAddr()+MbItem.addrCorrect; //reg.get( mbItem.size()-1 ).getAddr();
+                                    
+                                    //  for(; addrFirst < addrLast; addrFirst+= 125)
+                                   
+                                        //      if(addrLast - addrFirst > 125)
+                                        //            addrLast += 125 - addrLast - addrFirst;
+                                        //        else
+                                        //             addrLast = ((MbItem)toArray[toArray.length-1]).getAddr();
                                         
-                                        int[] readHoldingRegisters = master.readHoldingRegisters( addr, addrFirst,
-                                                 addrLast - addrFirst + 1 ); //групповой запрос
-                                       // if (readHoldingRegisters.length >= addrLast - addrFirst + 1)     
-                                            for (int i = 0; i < reg.size(); ++i) {
-                                                int addrI = reg.get(i).getAddr()+ MbItem.addrCorrect;
+                                        //int[] reg = master.reg( addr, addrFirst,
+                                        //                addrLast - addrFirst + MbItem.addrCorrect ); //групповой запрос
+                                        //       if (reg.length >= addrLast - addrFirst + 1)
+                                        
+                                        
+                               case 4: addrs.forEach( (Integer addr, List<MbItem> mbItems) -> {
+                             
+                               try{
+                                   for (MbItem mbItem :  mbItems ) {
+               
+                                          if(mbItem.getAddr() >= 0)
+                                            switch (mbItem.getType()) {
                                                 
-                                                switch (reg.get(i).getType()) {
-
                                                 case int32:
                                                 case uint32:
                                                 case float32:
-                                                            
-                                                        reg.get( i ).setValue( readHoldingRegisters[addrI - addrFirst ] << 16 | readHoldingRegisters[addrI - addrFirst +1    ] );
-                                                   
-                                                    break; 
+                                                    int[] reg = getReg(func ,addr, mbItem.getAddr(), 2 );
+                                                    mbItem.setValue(reg[0] << 16 | reg[1] );
+                                                    break;  
                                                 default:
-                                                       
-                                                        reg.get( i ).setValue( readHoldingRegisters[ addrI - addrFirst ] );
-                                                      
-                                                }
+                                                    reg = getReg(func, addr ,mbItem.getAddr() ,1 );
+                                                    mbItem.setValue( reg[ 0 ] );
+                                                    
                                             }
-                                      
-                                       // controller.refresh();
-                                      
-                                    } catch (ModbusProtocolException | ModbusNumberException | ModbusIOException ex) {
-
+                                          
+                                     
+                                     }
+                                   if(!linkUp) System.out.println("Связь установлена!");
+                                   linkUp = true;
+                                  } catch (ModbusProtocolException | ModbusNumberException | ModbusIOException ex) {
+                                        this.linkUp = false;System.out.print("!!!Ошибка связи!");
                                         Logger.getLogger(Modbus.class.getName()).log(Level.SEVERE, ex.getMessage());
-                                    }// catch (InterruptedException ex) {
-                            //  return;
-                           // }
-
-                                    reg.forEach((mbItem) -> {
-
-                                        mbItem.getAddr();
-                                    });
+                                  }
                                 });
-
-                                break;
                         }
+
                     });
-               // }
+                    // }
+                
+                }
             }
-        }
-    };
-     Modbus(FXMLController controller){  
+        };  
         this.controller = controller; 
         SerialUtils.setSerialPortFactoryJSSC();
         thread = new Thread(runnable  ,"thread-Modbus" ); 
-        com.intelligt.modbus.jlibmodbus.Modbus.setLogLevel(com.intelligt.modbus.jlibmodbus.Modbus.LogLevel.LEVEL_DEBUG);    
+        com.intelligt.modbus.jlibmodbus.Modbus.setLogLevel(com.intelligt.modbus.jlibmodbus.Modbus.LogLevel.LEVEL_RELEASE);    
         
       
 
@@ -132,7 +180,7 @@ public class Modbus {
         if (master != null) {
             master.disconnect();
         }
-
+        
         switch (type){
             case "ASCII" : master =  ModbusMasterFactory.createModbusMasterASCII((SerialParameters)parameters);
             break;
@@ -160,17 +208,12 @@ public class Modbus {
                 
     }
     public boolean startReguisition(){
-        try {
-            getModbusMaster().connect();
-            if ( this.thread.isAlive()) return true;
-            this.thread = new Thread(this.runnable, "thread-Modbus");
-            this.thread.setDaemon(true);
-            this.thread.setPriority( Thread.NORM_PRIORITY - 1 );
-            this.thread.start();
-        } catch (ModbusIOException ex) {
-            Logger.getLogger(Modbus.class.getName()).log(Level.SEVERE, ex.getMessage());
-            return false;
-        }
+       if( getModbusMaster() == null) return false;
+        if ( this.thread.isAlive()) return true;
+        this.thread = new Thread(this.runnable, "thread-Modbus");
+        this.thread.setDaemon(true);
+        this.thread.setPriority( Thread.NORM_PRIORITY - 1 );
+        this.thread.start();
         return true;
     }
     
@@ -193,7 +236,9 @@ public class Modbus {
                 master.connect();
                 return master;
             }
+            
             master = newMaster(this.controller.getSerialParameters(), this.controller.getModbusMasterType());
+            
             master.connect();
             return master;
         } catch (ModbusIOException | SerialPortException ex) {
@@ -202,8 +247,26 @@ public class Modbus {
 
         return null;
     }
-    public void writeReg(){
-        
+    public void writeReg(MbItem item, int value) throws ModbusProtocolException, ModbusNumberException, ModbusIOException{
+        if(this.getModbusMaster()== null) return;
+         MbItem code = MbItem.code.get(item.getServer());
+            if(code != null && !code.equals( item ) )
+                this.getModbusMaster().writeSingleRegister( code.getServer(), code.getAddr(), code.getRawDefaultValue() );   
+                        
+                        switch(item.getType()){ 
+                            case _1bit:
+                                this.getModbusMaster().writeSingleCoil(item.getServer(),  item.getAddr(), (value != 0) );
+                                break;
+                            case uint32:
+                            case int32:
+                            case float32:    
+                                    this.getModbusMaster().writeSingleRegister( item.getServer(), item.getAddr(), value >> 16 );
+                                    this.getModbusMaster().writeSingleRegister( item.getServer(), item.getAddr() + 1, value & 0x0000FFFF);
+                                break;
+                            default: this.getModbusMaster().writeSingleRegister( item.getServer(), item.getAddr(), value );
+                        }  
     }
+    
+    
             
 }
